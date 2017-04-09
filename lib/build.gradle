@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.4.0'
+    }
+}
+publish {
+    userOrg = 'yanglssc'
+    groupId = 'tech.linjiang'
+    artifactId = 'suitlines'
+    publishVersion = '1.0.0'
+    desc = 'a tiny and effecient line-chart for android library.'
+    website = 'https://github.com/whataa/SuitLines'
+}
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+allprojects {
+    tasks.withType(Javadoc) {
+        options{
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api"
+        }
+    }
+}
+

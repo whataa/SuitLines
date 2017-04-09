@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="suitlines">
+        <attr name="xySize" format="float" />
+        <attr name="xyColor" format="reference|color" />
+        <attr name="lineType">
+            <enum name="curve" value="0" />
+            <enum name="segment" value="1" />
+        </attr>
+        <attr name="lineStyle">
+            <enum name="solid" value="0" />
+            <enum name="dashed" value="1" />
+        </attr>
+        <attr name="needEdgeEffect" format="boolean" />
+        <attr name="colorEdgeEffect" format="reference|color" />
+        <attr name="needClickHint" format="boolean" />
+        <attr name="colorHint" format="reference|color" />
+        <attr name="maxOfVisible" format="integer" />
+        <attr name="countOfY" format="integer" />
+    </declare-styleable>
+</resources>
