@@ -815,6 +815,7 @@ public class SuitLines extends View {
         if (needAnim) {
             showWithAnims();
         } else {
+            forceToDraw = true;
             invalidate();
         }
     }
