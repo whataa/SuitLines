@@ -1058,7 +1058,9 @@ public class SuitLines extends View {
         if (colors == null || colors.length < 1) return;
         defaultLineColor = colors;
         basePaint.setColor(colors[0]);
-        basePaint.setShader(buildPaintColor(colors));
+        if (linesArea != null) {// 区域还未初始化
+            basePaint.setShader(buildPaintColor(colors));
+        }
         if (!datas.isEmpty() && datas.size() == 1) {
             paints.get(0).set(basePaint);
             postInvalidate();
@@ -1292,7 +1294,7 @@ public class SuitLines extends View {
         }
 
         /**
-         * 调用该方法开始填充数据
+         * 调用该方法开始填充数据，该方法需要保证SuitLines已经初始化
          * @param suitLines 需要被填充的图表
          * @param needAnim  是否需要动画
          */
