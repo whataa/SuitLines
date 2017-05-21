@@ -82,6 +82,8 @@ public class SuitLines extends View {
         basePaint.setColor(defaultLineColor[0]);
         basePaint.setStyle(Paint.Style.STROKE);
         basePaint.setStrokeWidth(4);
+        coverLinePaint.setStyle(Paint.Style.STROKE);
+        coverLinePaint.setStrokeWidth(Util.dip2px(5));
         setLineStyle(SOLID);
         xyPaint.setTextSize(Util.size2sp(defaultXySize, getContext()));
         xyPaint.setColor(defaultXyColor);
@@ -130,7 +132,7 @@ public class SuitLines extends View {
     /**
      * 默认画笔的颜色，索引0位置为画笔颜色，整个数组为shader颜色
      */
-    private int[] defaultLineColor = {Color.RED, 0xFFF35E54, Color.YELLOW};
+    private int[] defaultLineColor = {Color.RED, Color.YELLOW, Color.WHITE};
     private int hintColor = Color.RED;
     /**
      * xy轴文字颜色和大小
@@ -142,6 +144,11 @@ public class SuitLines extends View {
      */
     private List<Paint> paints = new ArrayList<>();
     private List<Path> paths = new ArrayList<>();
+    private Path tmpPath = new Path();
+    /**
+     * fill形态下时，边缘线画笔
+     */
+    Paint coverLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     /**
      * 约定：如果需要实现多组数据，那么每组数据的长度必须相同！
      * 多组数据的数据池；
@@ -242,6 +249,11 @@ public class SuitLines extends View {
      */
     private boolean needEdgeEffect = true;
     private int edgeEffectColor = Color.GRAY;
+    /**
+     * fill形态下，是否绘制边缘线
+     * 若开启该特性，闭合路径的操作将延迟到绘制时
+     */
+    private boolean needCoverLine;
     /**
      * 点击是否弹出额外信息
      */
@@ -661,7 +673,7 @@ public class SuitLines extends View {
                             (previous.getXY().x + current.getXY().x) / 2, curY,
                             current.getXY().x, curY);
                 }
-                if (isLineFill() && i == endIndex) {
+                if (!needCoverLine && isLineFill() && i == endIndex) {
                     paths.get(j).lineTo(current.getXY().x, linesArea.bottom);
                     paths.get(j).lineTo(datas.get(j).get(startIndex).getXY().x, linesArea.bottom);
                     paths.get(j).close();
@@ -678,9 +690,32 @@ public class SuitLines extends View {
     private void drawExsitDirectly(Canvas canvas) {
         // TODO 需要优化
         for (int j = 0; j < datas.size(); j++) {
-            canvas.drawPath(paths.get(j), paints.get(j));
+            if (!isLineFill() || !needCoverLine) {
+                canvas.drawPath(paths.get(j), paints.get(j));
+            } else {
+                if (needCoverLine) {
+                    coverLinePaint.setColor(Util.tryGetStartColorOfLinearGradient((LinearGradient) paints.get(j).getShader()));
+                    canvas.save();
+                    canvas.clipRect(linesArea.left - offset, linesArea.top, linesArea.right - offset, linesArea.bottom);
+                    // 由于paint的stroke是双边，所以下一个draw不会覆盖当前已经的draw
+                    canvas.drawPath(paths.get(j), coverLinePaint);
+                    canvas.restore();
+                    tmpPath.set(paths.get(j));
+                    tmpPath.lineTo(datas.get(j).get(suitEdge[1]).getXY().x, linesArea.bottom);
+                    tmpPath.lineTo(datas.get(j).get(suitEdge[0]).getXY().x, linesArea.bottom);
+                    tmpPath.close();
+                    canvas.drawPath(tmpPath, paints.get(j));
+                    tmpPath.reset();
+                }
+            }
         }
         // TODO 画点
+    }
+
+    private float calcReferenceLengthOf(int j) {
+        return linesArea.height() * 2 - datas.get(j).get(suitEdge[0]).getXY().y
+                - datas.get(j).get(suitEdge[1]).getXY().y
+                + datas.get(j).get(suitEdge[1]).getXY().x - datas.get(j).get(suitEdge[0]).getXY().x;
     }
 
     /**
@@ -1049,6 +1084,27 @@ public class SuitLines extends View {
     }
 
     ///APIs/////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * 在fill形态时，是否在图表上边缘绘制line
+     * @param enable    true表示需要，反正不需要
+     */
+    public void setCoverLine(boolean enable) {
+        needCoverLine = enable;
+        forceToDraw = true;
+        postInvalidate();
+    }
+
+    /**
+     * 在fill形态时，指定在图表上边缘绘制line的宽度，该方法会开启needCoverLine特性
+     * @param withdp    宽度
+     */
+    public void setCoverLine(float withdp) {
+        needCoverLine = true;
+        coverLinePaint.setStrokeWidth(Util.dip2px(withdp) * 2);
+        forceToDraw = true;
+        postInvalidate();
+    }
 
     /**
      * 设置默认一条line时的颜色

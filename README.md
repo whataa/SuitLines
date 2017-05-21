@@ -8,6 +8,14 @@ suitline是一个小巧且高效的线性图表组件。
 
 ![image](http://note.youdao.com/yws/api/personal/file/C24FFB56C0F944E9AF4332357F33F09C?method=download&shareKey=156bb9a08b3f4f4d6ae8f5ddac4607fb) ![image](http://note.youdao.com/yws/api/personal/file/CC73337B96A94DA493D6B8E27F9103D7?method=download&shareKey=d0115a84957acf8bba265058460a63d9)
 
+## 更新历史
+
+- 2017/5/21（v1.1.0）
+
+    1. 修复BUG：#1，#7；
+    2. 新增FILL形态时显示图表上边框线的属性coverLine，具体效果已添加至demo，通过方法`setCoverLine(boolean enable)`开启或关闭；
+
+
 ## 功能特性
 suitline基于实用性目的而打造，相较于其它图表库，suitlines在多线段、性能体验以及视觉反馈等几个方面进行了支持和优化，使其更适合用于实际项目中。suitLines的所有特性如下：
 
@@ -33,7 +41,7 @@ suitline基于实用性目的而打造，相较于其它图表库，suitlines在
 ### 1.集成
 - 第一种：通过build.gradle方式集成
     ```groovy
-    compile 'tech.linjiang:suitlines:1.0.0'
+    compile 'tech.linjiang:suitlines:1.1.0'
     ```
 
 - 第二种：直接下载源文件到项目。（**推荐**）
@@ -74,6 +82,7 @@ maxOfVisible | / | 一组数据在可见区域中的最大可见点数，至少>
 countOfY | / | y轴刻度数，至少>=1
 / | setLineSize | 设置line在非填充形态时的大小
 / | setLineForm | 设置line的形态：是否填充，默认为false
+/ | setCoverLine | 设置当line是FILL形态时，是否现在上边框线，默认false
 
 ### 3.填充数据
 

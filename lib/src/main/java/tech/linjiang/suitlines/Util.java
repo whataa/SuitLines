@@ -18,6 +18,8 @@ package tech.linjiang.suitlines;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
@@ -74,5 +76,24 @@ class Util {
             mGlow.setCallback(null);
         } catch (Exception ignored) {
         }
+    }
+
+    static int tryGetStartColorOfLinearGradient(LinearGradient gradient) {
+        try {
+            Field field = LinearGradient.class.getDeclaredField("mColors");
+            field.setAccessible(true);
+            int[] colors = (int[]) field.get(gradient);
+            return colors[0];
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                Field field = LinearGradient.class.getDeclaredField("mColor0");
+                field.setAccessible(true);
+                return (int) field.get(gradient);
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+        return Color.BLACK;
     }
 }

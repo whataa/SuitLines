@@ -27,15 +27,15 @@ public class MainActivity extends Activity {
         suitLines.anim();
     }
 
+    private boolean enable;
     public void onBtnClick1(View view) {
+        suitLines.setCoverLine(enable = !enable);
     }
 
     public void onBtnClick13(View view) {
-        int size = new SecureRandom().nextInt(4);
-        int[] colors = new int[size == 0 ? (size = 1) : size];
-        for (int i = 0; i < size; i++) {
-            colors[i] = color[new SecureRandom().nextInt(4)];
-        }
+        int[] colors = new int[2];
+        colors[0] = color[new SecureRandom().nextInt(7)];
+        colors[1] = Color.WHITE;
         suitLines.setDefaultOneLineColor(colors);
     }
 
@@ -75,11 +75,11 @@ public class MainActivity extends Activity {
     }
 
     public void onBtnClick9(View view) {
-        suitLines.setEdgeEffectColor(color[new SecureRandom().nextInt(4)]);
+        suitLines.setEdgeEffectColor(color[new SecureRandom().nextInt(7)]);
     }
 
     public void onBtnClick10(View view) {
-        suitLines.setXyColor(color[new SecureRandom().nextInt(4)]);
+        suitLines.setXyColor(color[new SecureRandom().nextInt(7)]);
     }
 
     private float textSize = 8;
@@ -98,10 +98,10 @@ public class MainActivity extends Activity {
         suitLines.disableClickHint();
     }
     public void onBtnClick15(View view) {
-        suitLines.setHintColor(color[new SecureRandom().nextInt(4)]);
+        suitLines.setHintColor(color[new SecureRandom().nextInt(7)]);
     }
 
-    private int[] color = {Color.RED, Color.GRAY, 0xFFF76055, 0xFF9B3655, 0xFFF7A055};
+    private int[] color = {Color.RED, Color.GRAY, Color.BLACK, Color.BLUE, 0xFFF76055, 0xFF9B3655, 0xFFF7A055};
 
     public void init(int count) {
         if (count <= 0) {
@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
             for (int i = 0; i < 50; i++) {
                 lines.add(new Unit(new SecureRandom().nextInt(128), "" + i));
             }
-            builder.add(lines, new int[]{color[new SecureRandom().nextInt(4)], color[new SecureRandom().nextInt(4)], color[new SecureRandom().nextInt(4)]});
+            builder.add(lines, new int[]{color[new SecureRandom().nextInt(7)], Color.WHITE});
         }
         builder.build(suitLines, true);
 

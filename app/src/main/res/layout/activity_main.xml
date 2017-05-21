@@ -3,8 +3,7 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
     <tech.linjiang.suitlines.SuitLines
         xmlns:line="http://schemas.android.com/apk/res-auto"
@@ -66,12 +65,13 @@
             </LinearLayout>
 
             <TextView
-                android:text="|| 设置Line的形态/风格/类型/颜色："
+                android:text="|| 设置Line的形态/fill形态下的边缘线/风格/类型/颜色："
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <LinearLayout
+                android:gravity="center_vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:orientation="horizontal">
 
                 <Button
@@ -80,6 +80,14 @@
                     android:layout_weight="1"
                     android:onClick="onBtnClick5"
                     android:text="Form" />
+
+                <Button
+                    android:textSize="13sp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="onBtnClick1"
+                    android:text="cover-line" />
 
                 <Button
                     android:layout_width="0dp"

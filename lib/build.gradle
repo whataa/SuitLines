@@ -12,7 +12,7 @@ publish {
     userOrg = 'yanglssc'
     groupId = 'tech.linjiang'
     artifactId = 'suitlines'
-    publishVersion = '1.0.0'
+    publishVersion = '1.1.0'
     desc = 'a tiny and effecient line-chart for android library.'
     website = 'https://github.com/whataa/SuitLines'
 }
