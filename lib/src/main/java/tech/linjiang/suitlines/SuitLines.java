@@ -16,6 +16,8 @@
 
 package tech.linjiang.suitlines;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -1035,7 +1037,7 @@ public class SuitLines extends View {
      * @param startIndex
      * @param endIndex
      */
-    private void startLineAnim(int startIndex, int endIndex) {
+    private void startLineAnim(final int startIndex, final int endIndex) {
         final List<Unit> line = datas.get(curAnimLine);
         long duration = calcVisibleLineCost();
         if (duration > 0) {
@@ -1045,7 +1047,17 @@ public class SuitLines extends View {
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    line.get((Integer) animation.getAnimatedValue()).startAnim(pointInterpolator);
+                    for (int i = startIndex; i <= (Integer) animation.getAnimatedValue(); i++) {
+                        line.get(i).startAnim(pointInterpolator);
+                    }
+                }
+            });
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    for (int i = startIndex; i <= endIndex; i++) {
+                        line.get(i).startAnim(pointInterpolator);
+                    }
                 }
             });
             animator.start();

@@ -89,8 +89,12 @@ public class Unit implements Comparable<Unit>, Cloneable {
     }
 
     void startAnim(TimeInterpolator value) {
+        if (percent > 0 || VALUEANIMATOR.isRunning()) {
+            return;
+        }
         // 如果value小于一定阈值就不开启动画
-        if (VALUEANIMATOR.isRunning() || (int)this.value <= 1) {
+        if ((int)this.value < 0.1) {
+            percent = 1;
             return;
         }
         VALUEANIMATOR.setFloatValues(0, 1);
