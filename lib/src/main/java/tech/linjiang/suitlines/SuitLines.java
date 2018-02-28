@@ -283,10 +283,9 @@ public class SuitLines extends View {
     public static final int DASHED = 1;
     private int lineStyle = SOLID;
 
-
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         calcAreas();
         basePaint.setShader(buildPaintColor(defaultLineColor));
         if (!datas.isEmpty()) {

@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         suitLines = (SuitLines) findViewById(R.id.suitlines);
+        onBtnClick2(null);
     }
 
     public void onBtnClick(View view) {
