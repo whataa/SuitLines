@@ -10,6 +10,14 @@ suitline是一个小巧且高效的线性图表组件。
 
 ## 更新历史
 
+- 2018/7/9
+
+> 从本次提交开始，不再支持通过compile形式集成，建议直接拷贝源码到项目，方便自定义；
+
+    1. 修复被detach的情况下，重新attach到View时没有绘制的情况；
+    2. 支持显示y为负数的情况；
+    3. 新增y轴刻度辅助线显示，通过方法`setShowYGrid(boolean showYGrid)`开启或关闭；
+
 - 2017/5/21（v1.1.0）
 
     1. 修复BUG：#1，#7；
@@ -39,7 +47,7 @@ suitline基于实用性目的而打造，相较于其它图表库，suitlines在
 > 注意：SuitLines需要项目的 API >= 14
 
 ### 1.集成
-- 第一种：通过build.gradle方式集成
+- ~~第一种：通过build.gradle方式集成~~ **[DEPRECATED]**
     ```groovy
     compile 'tech.linjiang:suitlines:1.1.0'
     ```

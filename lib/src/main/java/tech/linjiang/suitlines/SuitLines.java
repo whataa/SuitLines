@@ -37,6 +37,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -46,6 +47,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.EdgeEffect;
 import android.widget.Scroller;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -204,11 +206,15 @@ public class SuitLines extends View {
      * y轴的缓存，提高移动效率
      */
     private Bitmap yAreaBuffer;
+    /**
+     * y轴的辅助刻度线
+     */
+    private Bitmap yGridBuffer;
 
     /**
-     * y轴的最大刻度值，保留一位小数
+     * y轴的最小和大刻度值，保留一位小数
      */
-    private float maxValueOfY;
+    private float[] minAndMaxOfY = new float[2];
 
     /**
      * 根据可见点数计算出的两点之间的距离
@@ -239,7 +245,7 @@ public class SuitLines extends View {
     /**
      * 判断左/右方向，当在边缘就不触发fling，以优化性能
      */
-    float orientationX;
+    private float orientationX;
     private VelocityTracker velocityTracker;
     private Scroller scroller;
 
@@ -269,11 +275,19 @@ public class SuitLines extends View {
      * 控制是否强制重新生成path，当改变lineType/paint时需要
      */
     private boolean forceToDraw;
+    /**
+     * 是否显示y轴的辅助刻度线
+     */
+    private boolean showYGrid = false;
 
     /**
      * lines在当前可见区域的边缘点
      */
     private int[] suitEdge;
+    /**
+     * y为0时的坐标值
+     */
+    private float zeroAxisValue;
 
     // 曲线、线段
     public static final int CURVE = 0;
@@ -658,7 +672,7 @@ public class SuitLines extends View {
         for (int i = startIndex; i <= endIndex; i++) {
             for (int j = 0; j < datas.size(); j++) {
                 Unit current = datas.get(j).get(i);
-                float curY = linesArea.bottom - (linesArea.bottom - current.getXY().y) * current.getPercent();
+                float curY = zeroAxisValue - (zeroAxisValue - current.getXY().y) * current.getPercent();
                 if (i == startIndex) {
                     paths.get(j).moveTo(current.getXY().x, curY);
                     continue;
@@ -670,7 +684,7 @@ public class SuitLines extends View {
                     Unit previous = datas.get(j).get(i - 1);
                     // 两个锚点的坐标x为中点的x，y分别是两个连接点的y
                     paths.get(j).cubicTo((previous.getXY().x + current.getXY().x) / 2,
-                            linesArea.bottom - (linesArea.bottom - previous.getXY().y) * previous.getPercent(),
+                            zeroAxisValue - (zeroAxisValue - previous.getXY().y) * previous.getPercent(),
                             (previous.getXY().x + current.getXY().x) / 2, curY,
                             current.getXY().x, curY);
                 }
@@ -765,12 +779,15 @@ public class SuitLines extends View {
                 xyPaint.setTextAlign(Paint.Align.CENTER);
             }
             canvas.drawText(extX, datas.get(0).get(i).getXY().x, Util.calcTextSuitBaseY(xArea, xyPaint), xyPaint);
+            canvas.drawLine(datas.get(0).get(i).getXY().x, xArea.top,
+                    datas.get(0).get(i).getXY().x, xArea.top+basePadding, xyPaint);
         }
     }
 
 
     private void drawY(Canvas canvas) {
         if (yAreaBuffer == null) {
+            // 可以在这里自定义y轴的绘制以及逻辑，例如线的类型、颜色、大小等
             yAreaBuffer = Bitmap.createBitmap((int)yArea.width(), (int)yArea.height(), Bitmap.Config.ARGB_8888);
             Rect yRect = new Rect(0, 0, yAreaBuffer.getWidth(), yAreaBuffer.getHeight());
             Canvas yCanvas = new Canvas(yAreaBuffer);
@@ -778,23 +795,53 @@ public class SuitLines extends View {
             for (int i = 0; i < countOfY; i++) {
                 xyPaint.setTextAlign(Paint.Align.RIGHT);
                 float extY;
-                float y;
+                float y, yAxis;
                 if (i == 0) {
-                    extY = 0;
-                    y = yRect.bottom;
+                    extY = minAndMaxOfY[0];
+                    y = yAxis = yRect.bottom;
                 } else if (i == countOfY - 1) {
-                    extY = maxValueOfY;
+                    extY = minAndMaxOfY[1];
                     y = yRect.top + Util.getTextHeight(xyPaint) + 3;
+                    yAxis = yRect.top;
                 } else {
-                    extY = maxValueOfY / (countOfY - 1) * i;
-                    y = yRect.bottom - yRect.height() / (countOfY - 1) * i + Util.getTextHeight(xyPaint)/2;
+                    extY = minAndMaxOfY[0] + (minAndMaxOfY[1] - minAndMaxOfY[0]) / (countOfY - 1) * i;
+                    y = yAxis = yRect.bottom - yRect.height() / (countOfY - 1) * i + Util.getTextHeight(xyPaint)/2;
                 }
                 yCanvas.drawText(new DecimalFormat("##.#").format(extY), yRect.right - basePadding, y, xyPaint);
+                yCanvas.drawLine(yRect.right - basePadding, yAxis, yRect.right, yAxis, xyPaint);
+            }
+            if (minAndMaxOfY[0] != 0 && minAndMaxOfY[1] != 0) {
+                float y = zeroAxisValue - yArea.top;
+                yCanvas.drawText("0", yRect.right - basePadding, y, xyPaint);
+                yCanvas.drawLine(yRect.right - basePadding, y, yRect.right, y, xyPaint);
             }
         }
         canvas.drawBitmap(yAreaBuffer,yArea.left,yArea.top,null);
 
-
+        if (yGridBuffer == null) {
+            // 可以在这里自定义刻度辅助线的绘制，例如线的类型、颜色、大小等
+            yGridBuffer = Bitmap.createBitmap((int)linesArea.width(), (int)linesArea.height(), Bitmap.Config.ARGB_8888);
+            Rect yRect = new Rect(0, 0, yGridBuffer.getWidth(), yGridBuffer.getHeight());
+            Canvas yCanvas = new Canvas(yGridBuffer);
+            for (int i = 0; i < countOfY; i++) {
+                float yAxis;
+                if (i == 0) {
+                    yAxis = yRect.bottom;
+                } else if (i == countOfY - 1) {
+                    yAxis = yRect.top;
+                } else {
+                    yAxis = yRect.bottom - yRect.height() / (countOfY - 1) * i + Util.getTextHeight(xyPaint)/2;
+                }
+                yCanvas.drawLine(0, yAxis, yCanvas.getWidth(), yAxis, xyPaint);
+            }
+            if (minAndMaxOfY[0] != 0 && minAndMaxOfY[1] != 0) {
+                float y = zeroAxisValue - yArea.top;
+                yCanvas.drawLine(0, y, yCanvas.getWidth(), y, xyPaint);
+            }
+        }
+        if (showYGrid) {
+            canvas.drawBitmap(yGridBuffer,linesArea.left,linesArea.top,null);
+        }
     }
 
     /**
@@ -874,21 +921,22 @@ public class SuitLines extends View {
         // 最后排序，得到最大值
         Collections.sort(bakUnits);
         Unit maxUnit = bakUnits.get(bakUnits.size() - 1);
-        maxValueOfY = Util.getCeil5(maxUnit.getValue());
+        Unit minUnit = bakUnits.get(0);
+        minAndMaxOfY[0] = Util.getCeil5(Math.min(minUnit.getValue(), 0));
+        minAndMaxOfY[1] = Util.getCeil5(Math.max(maxUnit.getValue(), 0));
     }
 
     /**
      * 重新计算三个区域的大小
      */
     private void calcAreas() {
-        String baseY = "00";
-        if (maxValueOfY > 0) {
-            baseY = String.valueOf(maxValueOfY);
-        }
+        float textWidth = Math.max(xyPaint.measureText(String.valueOf(minAndMaxOfY[0])),
+                xyPaint.measureText(String.valueOf(minAndMaxOfY[1])));
+        float maxWidth = Math.max(xyPaint.measureText("00"), textWidth);
         RectF validArea = new RectF(getPaddingLeft() + basePadding, getPaddingTop() + basePadding,
                 getMeasuredWidth() - getPaddingRight() - basePadding, getMeasuredHeight() - getPaddingBottom());
         yArea = new RectF(validArea.left, validArea.top,
-                validArea.left + xyPaint.measureText(baseY) + basePadding,
+                validArea.left + maxWidth + basePadding,
                 validArea.bottom - Util.getTextHeight(xyPaint) - basePadding * 2);
         xArea = new RectF(yArea.right, yArea.bottom, validArea.right, validArea.bottom);
         linesArea = new RectF(yArea.right+1, yArea.top, xArea.right, yArea.bottom);
@@ -901,17 +949,29 @@ public class SuitLines extends View {
      * <br>同时得到了realBetween，maxOffset
      */
     private void calcUnitXY() {
+        float absValueOfY = Math.abs(minAndMaxOfY[1] - minAndMaxOfY[0]);
         int realNum = Math.min(datas.get(0).size(), maxOfVisible);
         realBetween = linesArea.width() / (realNum - 1);
+        // 防止line的stroke部分在lineArea外被clip
+        float padding = paints.get(0).getStrokeWidth() / 2;
         for (int i = 0; i < datas.get(0).size(); i++) {
             for (int j = 0; j < datas.size(); j++) {
+                float curValue = datas.get(j).get(i).getValue();
+                float scale = new BigDecimal("1").subtract(
+                        (new BigDecimal(Float.toString(curValue))
+                                .subtract(new BigDecimal(Float.toString(minAndMaxOfY[0]))))
+                                .divide(new BigDecimal(Float.toString(absValueOfY)), 2,BigDecimal.ROUND_DOWN)
+                ).floatValue();
+                Log.d(TAG, "calcUnitXY: scale="+scale);
+
                 datas.get(j).get(i).setXY(new PointF(linesArea.left + realBetween * i,
-                        linesArea.top + linesArea.height() * (1 - datas.get(j).get(i).getValue() / maxValueOfY)));
+                        linesArea.top + linesArea.height() * scale + (scale == 0 ? padding : (scale == 1 ? -padding : 0))));
                 if (i == datas.get(0).size() - 1) {
                     maxOffset = Math.abs(datas.get(j).get(i).getXY().x) - linesArea.width() - linesArea.left;
                 }
             }
         }
+        zeroAxisValue = linesArea.top + linesArea.height() * minAndMaxOfY[1] / (minAndMaxOfY[1] - minAndMaxOfY[0]);
     }
 
     /**
@@ -1072,7 +1132,7 @@ public class SuitLines extends View {
      * 重置相关状态
      */
     private void reset() {
-        invaliateYBuffer();
+        invalidateYBuffer();
         offset = 0;
         realBetween = 0;
         suitEdge = null;
@@ -1080,19 +1140,23 @@ public class SuitLines extends View {
         datas.clear();
     }
 
-    private void invaliateYBuffer() {
+    private void invalidateYBuffer() {
         if (yAreaBuffer != null) {
             yAreaBuffer.recycle();
             yAreaBuffer = null;
         }
+        if (yGridBuffer != null) {
+            yGridBuffer.recycle();
+            yGridBuffer = null;
+        }
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        cancelAllAnims();
-        reset();
-    }
+//    @Override
+//    protected void onDetachedFromWindow() {
+//        super.onDetachedFromWindow();
+//        cancelAllAnims();
+//        reset();
+//    }
 
     ///APIs/////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1157,7 +1221,7 @@ public class SuitLines extends View {
         defaultXyColor = color;
         xyPaint.setColor(defaultXyColor);
         if (!datas.isEmpty()) {
-            invaliateYBuffer();
+            invalidateYBuffer();
             forceToDraw = true;
             postInvalidate();
         }
@@ -1171,7 +1235,7 @@ public class SuitLines extends View {
         defaultXySize = sp;
         xyPaint.setTextSize(Util.size2sp(defaultXySize, getContext()));
         if (!datas.isEmpty()) {
-            invaliateYBuffer();
+            invalidateYBuffer();
             calcAreas();
             calcUnitXY();
             offset = 0;// fix bug.
@@ -1276,6 +1340,11 @@ public class SuitLines extends View {
         edgeEffectColor = color;
         Util.trySetColorForEdgeEffect(edgeEffectLeft, edgeEffectColor);
         Util.trySetColorForEdgeEffect(edgeEffectRight, edgeEffectColor);
+        postInvalidate();
+    }
+
+    public void setShowYGrid(boolean showYGrid) {
+        this.showYGrid = showYGrid;
         postInvalidate();
     }
 

@@ -93,7 +93,7 @@ public class Unit implements Comparable<Unit>, Cloneable {
             return;
         }
         // 如果value小于一定阈值就不开启动画
-        if ((int)this.value < 0.1) {
+        if (Math.abs((int)this.value) < 0.1) {
             percent = 1;
             return;
         }

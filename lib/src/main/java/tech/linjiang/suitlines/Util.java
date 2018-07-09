@@ -36,7 +36,8 @@ import java.lang.reflect.Field;
 class Util {
 
     static int getCeil5(float num) {
-        return ((int) (num + 4.9f)) / 5 * 5;
+        boolean isNegative = num < 0;
+        return (((int) ((isNegative ? -num : num) + 4.9f)) / 5 * 5) * (isNegative ? -1 : 1);
     }
 
     static float calcTextSuitBaseY(RectF rectF, Paint paint) {

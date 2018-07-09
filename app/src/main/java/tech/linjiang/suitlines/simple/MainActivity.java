@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         suitLines = (SuitLines) findViewById(R.id.suitlines);
         onBtnClick2(null);
+        onBtnClick101(null);
     }
 
     public void onBtnClick(View view) {
@@ -110,9 +111,22 @@ public class MainActivity extends Activity {
         }
         if (count == 1) {
             List<Unit> lines = new ArrayList<>();
-            for (int i = 0; i < 14; i++) {
-                lines.add(new Unit(new SecureRandom().nextInt(48), i + "d"));
-            }
+//            for (int i = 0; i < 14; i++) {
+//                lines.add(new Unit(new SecureRandom().nextInt(48), i + "d"));
+//            }
+            lines.add(new Unit(0, "dd"));
+            lines.add(new Unit(30, "dd"));
+            lines.add(new Unit(42, "dd"));
+            lines.add(new Unit(10, "dd"));
+            lines.add(new Unit(0, "dd"));
+            lines.add(new Unit(-10, "dd"));
+            lines.add(new Unit(35, "dd"));
+            lines.add(new Unit(15, "dd"));
+            lines.add(new Unit(0, "dd"));
+            lines.add(new Unit(-6, "dd"));
+            lines.add(new Unit(6, "dd"));
+            lines.add(new Unit(2, "dd"));
+            lines.add(new Unit(12, "dd"));
             suitLines.feedWithAnim(lines);
             return;
         }
@@ -127,5 +141,10 @@ public class MainActivity extends Activity {
         }
         builder.build(suitLines, true);
 
+    }
+
+    private boolean setShowYGrid;
+    public void onBtnClick101(View view) {
+        suitLines.setShowYGrid(setShowYGrid = !setShowYGrid);
     }
 }

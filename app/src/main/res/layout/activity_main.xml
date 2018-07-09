@@ -6,6 +6,7 @@
     android:orientation="vertical">
 
     <tech.linjiang.suitlines.SuitLines
+        android:paddingTop="16dp"
         xmlns:line="http://schemas.android.com/apk/res-auto"
         android:id="@+id/suitlines"
         android:layout_width="match_parent"
@@ -119,6 +120,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="onBtnClick101"
+                    android:text="y辅助线" />
 
                 <Button
                     android:layout_width="0dp"
