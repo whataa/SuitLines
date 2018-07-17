@@ -453,7 +453,8 @@ public class SuitLines extends View {
         }
         // x 蓝色会稍增加
         drawX(canvas, suitEdge[0], suitEdge[1]);
-        if (lastOffset != offset) {
+        boolean isClickOnLine = Math.abs(offset - lastOffset) < 2;
+        if (!isClickOnLine) {
             clickIndexs = null;
         }
         lastOffset = offset;
